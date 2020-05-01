@@ -7,7 +7,7 @@ import (
 	"strings"
 	"os"
 
-	"github.com/apexskier/httpauth"
+	"github.com/lootch/httpauth"
 	"github.com/gorilla/mux"
 )
 

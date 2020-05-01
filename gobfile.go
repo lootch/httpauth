@@ -20,6 +20,14 @@ type GobFileAuthBackend struct {
 	users    map[string]UserData
 }
 
+func (gob *GobFileAuthBackend) Path() string {
+	return gob.filepath
+}
+
+func (gob *GobFileAuthBackend) Nums() int {
+	return len(gob.users)
+}
+
 // NewGobFileAuthBackend initializes a new backend by loading a map of users
 // from a file.
 // If the file doesn't exist, returns an error.

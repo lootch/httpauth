@@ -1,8 +1,10 @@
-package httpauth
+package httpauth_test
 
 import (
 	"os"
 	"testing"
+
+	"github.com/lootch/httpauth"
 )
 
 // Establish new gobfile for testing due to issues with busy process from previous test.
@@ -10,8 +12,8 @@ var gobfile = "gobfile_test.gob"
 
 func TestInitGobFileAuthBackend(t *testing.T) {
 	err := os.Remove(gobfile)
-	b, err := NewGobFileAuthBackend(gobfile)
-	if err != ErrMissingBackend {
+	b, err := httpauth.NewGobFileAuthBackend(gobfile)
+	if err != httpauth.ErrMissingBackend {
 		t.Fatal(err.Error())
 	}
 
@@ -19,14 +21,14 @@ func TestInitGobFileAuthBackend(t *testing.T) {
 	if err != nil {
 		t.Fatal(err.Error())
 	}
-	b, err = NewGobFileAuthBackend(gobfile)
+	b, err = httpauth.NewGobFileAuthBackend(gobfile)
 	if err != nil {
 		t.Fatal(err.Error())
 	}
-	if b.filepath != gobfile {
+	if b.Path() != gobfile {
 		t.Fatal("File path not saved.")
 	}
-	if len(b.users) != 0 {
+	if b.Nums() != 0 {
 		t.Fatal("Users initialized with items.")
 	}
 
@@ -34,12 +36,12 @@ func TestInitGobFileAuthBackend(t *testing.T) {
 }
 
 func TestGobReopen(t *testing.T) {
-	b, err := NewGobFileAuthBackend(gobfile)
+	b, err := httpauth.NewGobFileAuthBackend(gobfile)
 	if err != nil {
 		t.Fatal(err.Error())
 	}
 	b.Close()
-	b, err = NewGobFileAuthBackend(gobfile)
+	b, err = httpauth.NewGobFileAuthBackend(gobfile)
 	if err != nil {
 		t.Fatal(err.Error())
 	}

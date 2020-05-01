@@ -5,6 +5,8 @@ import (
 	"errors"
 	"fmt"
 	"os"
+
+	"github.com/lootch/httpauth"
 )
 
 // SqlAuthBackend database and database connection information.
@@ -44,7 +46,7 @@ func NewSqlAuthBackend(driverName, dataSourceName string) (b SqlAuthBackend, e e
 	b.dataSourceName = dataSourceName
 	if driverName == "sqlite3" {
 		if _, err := os.Stat(dataSourceName); os.IsNotExist(err) {
-			return b, ErrMissingBackend
+			return b, httpauth.ErrMissingBackend
 		}
 	}
 	db, err := sql.Open(driverName, dataSourceName)
@@ -118,12 +120,12 @@ func NewSqlAuthBackend(driverName, dataSourceName string) (b SqlAuthBackend, e e
 
 // User returns the user with the given username. Error is set to
 // ErrMissingUser if user is not found.
-func (b SqlAuthBackend) User(username string) (user UserData, e error) {
+func (b SqlAuthBackend) User(username string) (user httpauth.UserData, e error) {
 	row := b.userStmt.QueryRow(username)
 	err := row.Scan(&user.Email, &user.Hash, &user.Role)
 	if err != nil {
 		if err == sql.ErrNoRows {
-			return user, ErrMissingUser
+			return user, httpauth.ErrMissingUser
 		}
 		return user, mksqlerror(err.Error())
 	}
@@ -132,7 +134,7 @@ func (b SqlAuthBackend) User(username string) (user UserData, e error) {
 }
 
 // Users returns a slice of all users.
-func (b SqlAuthBackend) Users() (us []UserData, e error) {
+func (b SqlAuthBackend) Users() (us []httpauth.UserData, e error) {
 	rows, err := b.usersStmt.Query()
 	if err != nil {
 		return us, mksqlerror(err.Error())
@@ -146,13 +148,13 @@ func (b SqlAuthBackend) Users() (us []UserData, e error) {
 		if err != nil {
 			return us, mksqlerror(err.Error())
 		}
-		us = append(us, UserData{username, email, hash, role})
+		us = append(us, httpauth.UserData{username, email, hash, role})
 	}
 	return us, nil
 }
 
 // SaveUser adds a new user, replacing one with the same username.
-func (b SqlAuthBackend) SaveUser(user UserData) (err error) {
+func (b SqlAuthBackend) SaveUser(user httpauth.UserData) (err error) {
 	if _, err := b.User(user.Username); err == nil {
 		_, err = b.updateStmt.Exec(user.Email, user.Hash, user.Role, user.Username)
 	} else {
@@ -172,7 +174,7 @@ func (b SqlAuthBackend) DeleteUser(username string) error {
 		return mksqlerror(err.Error())
 	}
 	if rows == 0 {
-		return ErrDeleteNull
+		return httpauth.ErrDeleteNull
 	}
 	return nil
 }

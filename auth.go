@@ -24,8 +24,6 @@ import (
 
 	"github.com/gorilla/sessions"
 	"golang.org/x/crypto/bcrypt"
-
-	_ "github.go/lootch/httpauth/mongodb"
 )
 
 // ErrDeleteNull is returned by DeleteUser when that user didn't exist at the

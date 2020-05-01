@@ -4,8 +4,10 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"github.com/syndtr/goleveldb/leveldb"
 	"os"
+
+	"github.com/lootch/httpauth"
+	"github.com/syndtr/goleveldb/leveldb"
 )
 
 // ErrMissingLeveldbBackend is returned by NewLeveldbAuthBackend when the file
@@ -21,7 +23,7 @@ var (
 // as a single value to the key "httpauth::userdata" on saves.
 type LeveldbAuthBackend struct {
 	filepath string
-	users    map[string]UserData
+	users    map[string]httpauth.UserData
 }
 
 // NewLeveldbAuthBackend initializes a new backend by loading a map of users
@@ -38,28 +40,28 @@ func NewLeveldbAuthBackend(filepath string) (b LeveldbAuthBackend, e error) {
 		data, err := db.Get([]byte("httpauth::userdata"), nil)
 		err = json.Unmarshal(data, &b.users)
 		if err != nil {
-			b.users = make(map[string]UserData)
+			b.users = make(map[string]httpauth.UserData)
 		}
 	} else {
 		return b, ErrMissingLeveldbBackend
 	}
 	if b.users == nil {
-		b.users = make(map[string]UserData)
+		b.users = make(map[string]httpauth.UserData)
 	}
 	return b, nil
 }
 
 // User returns the user with the given username. Error is set to
 // ErrMissingUser if user is not found.
-func (b LeveldbAuthBackend) User(username string) (user UserData, e error) {
+func (b LeveldbAuthBackend) User(username string) (user httpauth.UserData, e error) {
 	if user, ok := b.users[username]; ok {
 		return user, nil
 	}
-	return user, ErrMissingUser
+	return user, httpauth.ErrMissingUser
 }
 
 // Users returns a slice of all users.
-func (b LeveldbAuthBackend) Users() (us []UserData, e error) {
+func (b LeveldbAuthBackend) Users() (us []httpauth.UserData, e error) {
 	for _, user := range b.users {
 		us = append(us, user)
 	}
@@ -68,7 +70,7 @@ func (b LeveldbAuthBackend) Users() (us []UserData, e error) {
 
 // SaveUser adds a new user, replacing one with the same username, and flushes
 // to the db.
-func (b LeveldbAuthBackend) SaveUser(user UserData) error {
+func (b LeveldbAuthBackend) SaveUser(user httpauth.UserData) error {
 	b.users[user.Username] = user
 	err := b.save()
 	return err
@@ -94,8 +96,8 @@ func (b LeveldbAuthBackend) save() error {
 // DeleteUser removes a user, raising ErrDeleteNull if that user was missing.
 func (b LeveldbAuthBackend) DeleteUser(username string) error {
 	_, err := b.User(username)
-	if err == ErrMissingUser {
-		return ErrDeleteNull
+	if err == httpauth.ErrMissingUser {
+		return httpauth.ErrDeleteNull
 	} else if err != nil {
 		return fmt.Errorf("leveldbauthbackend: %v", err)
 	}
