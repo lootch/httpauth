@@ -1,4 +1,4 @@
-package httpauth
+package sqldb
 
 import (
 	"database/sql"

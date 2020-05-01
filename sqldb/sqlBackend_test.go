@@ -1,13 +1,14 @@
-package httpauth
+package sqldb_test
 
 import (
 	"database/sql"
 	"fmt"
+	"os"
+	"testing"
+
 	_ "github.com/go-sql-driver/mysql"
 	_ "github.com/lib/pq"
 	_ "github.com/mattn/go-sqlite3"
-	"os"
-	"testing"
 )
 
 func testSqlInit(t *testing.T, driver string, info string) {
